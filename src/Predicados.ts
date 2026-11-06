@@ -6,4 +6,10 @@ export class Predicados {
       return correo.remitente.email.endsWith(dominio);
     };
   }
+
+  static contieneEnAsunto(texto: string) {
+    return (correo: Correo): boolean => {
+      return correo.asunto.toLowerCase().includes(texto.toLowerCase());
+    };
+  }
 }

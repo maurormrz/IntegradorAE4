@@ -1,7 +1,6 @@
 import { Contacto } from "./Contacto";
 
 export class Correo {
-  public leido: boolean = false;
   public favorito: boolean = false;
 
   constructor(
@@ -11,4 +10,8 @@ export class Correo {
     public remitente: Contacto,
     public destinatarios: Contacto[]
   ) {}
+
+  marcarComoFavorito(): void {
+    this.favorito = true;
+  }
 }
