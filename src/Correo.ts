@@ -1,6 +1,7 @@
 import { Contacto } from "./Contacto";
 
 export class Correo {
+  public leido: boolean = false;
   public favorito: boolean = false;
 
   constructor(
