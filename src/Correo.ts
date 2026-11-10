@@ -15,4 +15,12 @@ export class Correo {
   marcarComoFavorito(): void {
     this.favorito = true;
   }
+
+  marcarComoLeido(): void {
+    this.leido = true;
+  }
+
+  marcarComoNoLeido(): void {
+    this.leido = false;
+  }
 }
