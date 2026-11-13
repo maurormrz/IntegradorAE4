@@ -20,7 +20,11 @@ describe("GestorCorreos (Integrador)", () => {
     });
 
     it("envía un borrador válido y lo quita de la bandeja de borradores", () => {
-      const borrador = gestor.crearBorrador({ asunto: "Hola", remitente: ana, destinatarios: [luis] });
+      const borrador = gestor.crearBorrador({
+        asunto: "Hola",
+        remitente: ana,
+        destinatarios: [luis],
+      });
       gestor.enviar(borrador);
 
       expect(gestor.borradores.contiene(borrador)).toBe(false);
@@ -28,29 +32,42 @@ describe("GestorCorreos (Integrador)", () => {
     });
 
     it("no permite enviar un borrador inválido", () => {
-      const borradorInvalido = gestor.crearBorrador({ asunto: "Falta remitente" });
+      const borradorInvalido = gestor.crearBorrador({
+        asunto: "Falta remitente",
+      });
       expect(() => gestor.enviar(borradorInvalido)).toThrow(/remitente/);
     });
 
     it("permite enviar un correo directo sin pasar por borradores", () => {
-      const correo = new Correo({ asunto: "Directo", remitente: ana, destinatarios: [luis] });
+      const correo = new Correo({
+        asunto: "Directo",
+        remitente: ana,
+        destinatarios: [luis],
+      });
       gestor.enviar(correo);
       expect(gestor.enviados.contiene(correo)).toBe(true);
     });
 
     it("evita generar registros duplicados si se envía el mismo correo dos veces", () => {
-      const correo = new Correo({ asunto: "Duplicado", remitente: ana, destinatarios: [luis] });
-      
+      const correo = new Correo({
+        asunto: "Duplicado",
+        remitente: ana,
+        destinatarios: [luis],
+      });
+
       gestor.enviar(correo);
       gestor.enviar(correo);
-      
+
       expect(gestor.enviados.cantidad).toBe(1); // Solo debe haber 1 correo en Enviados
     });
   });
 
   describe("Búsqueda (RF-04)", () => {
     it("busca correos en Entrada ignorando mayúsculas", () => {
-      const correo = new Correo({ asunto: "REUNION de equipo", remitente: ana });
+      const correo = new Correo({
+        asunto: "REUNION de equipo",
+        remitente: ana,
+      });
       gestor.entrada.agregar(correo);
 
       expect(gestor.buscarEnEntrada("reunion")).toContain(correo);
@@ -64,27 +81,33 @@ describe("GestorCorreos (Integrador)", () => {
       gestor.entrada.agregar(correo);
 
       gestor.eliminar(correo);
-      
+
       expect(gestor.entrada.contiene(correo)).toBe(false);
       expect(gestor.eliminados.contiene(correo)).toBe(true);
     });
 
     it("restaura un correo a su bandeja original exacta", () => {
-      const correoEnviado = new Correo({ asunto: "Enviado", remitente: ana, destinatarios: [luis] });
-      gestor.enviar(correoEnviado); 
+      const correoEnviado = new Correo({
+        asunto: "Enviado",
+        remitente: ana,
+        destinatarios: [luis],
+      });
+      gestor.enviar(correoEnviado);
 
       gestor.eliminar(correoEnviado);
       expect(gestor.eliminados.contiene(correoEnviado)).toBe(true);
 
       gestor.restaurar(correoEnviado);
-      expect(gestor.enviados.contiene(correoEnviado)).toBe(true); 
+      expect(gestor.enviados.contiene(correoEnviado)).toBe(true);
       expect(gestor.eliminados.contiene(correoEnviado)).toBe(false);
     });
 
     it("lanza error si intenta restaurar un correo no eliminado o eliminar uno inexistente", () => {
       const correo = new Correo({ asunto: "Test" });
       expect(() => gestor.restaurar(correo)).toThrow(/no está en Eliminados/);
-      expect(() => gestor.eliminar(correo)).toThrow(/no se encuentra en ninguna bandeja activa/);
+      expect(() => gestor.eliminar(correo)).toThrow(
+        /no se encuentra en ninguna bandeja activa/,
+      );
     });
   });
 
@@ -94,15 +117,18 @@ describe("GestorCorreos (Integrador)", () => {
       fav1.marcarFavorito();
       gestor.entrada.agregar(fav1);
 
-      const favEliminado = new Correo({ asunto: "FavEliminado", remitente: ana });
+      const favEliminado = new Correo({
+        asunto: "FavEliminado",
+        remitente: ana,
+      });
       favEliminado.marcarFavorito();
       gestor.entrada.agregar(favEliminado);
-      gestor.eliminar(favEliminado); 
+      gestor.eliminar(favEliminado);
 
       const favoritos = gestor.obtenerFavoritos();
-      
+
       expect(favoritos).toContain(fav1);
-      expect(favoritos).not.toContain(favEliminado); 
+      expect(favoritos).not.toContain(favEliminado);
       expect(favoritos.length).toBe(1);
     });
   });

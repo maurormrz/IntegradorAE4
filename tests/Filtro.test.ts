@@ -1,6 +1,10 @@
-import { 
-  Filtro, crearFiltroUCP, crearFiltroAcademicos, 
-  crearFiltroPendientes, crearFiltroPersonales, crearFiltroSeguimiento 
+import {
+  Filtro,
+  crearFiltroUCP,
+  crearFiltroAcademicos,
+  crearFiltroPendientes,
+  crearFiltroPersonales,
+  crearFiltroSeguimiento,
 } from "../src/Filtro";
 import { Correo } from "../src/Correo";
 import { Contacto } from "../src/Contacto";
@@ -9,13 +13,21 @@ describe("Filtro (RF-05)", () => {
   const ana = new Contacto("Ana", "ana@ucp.edu.ar");
   const luis = new Contacto("Luis", "luis@gmail.com");
 
-  const correoUcpExamen = new Correo({ asunto: "Examen de Base de Datos", remitente: ana });
-  const correoUcpNormal = new Correo({ asunto: "Aviso general", remitente: ana });
+  const correoUcpExamen = new Correo({
+    asunto: "Examen de Base de Datos",
+    remitente: ana,
+  });
+  const correoUcpNormal = new Correo({
+    asunto: "Aviso general",
+    remitente: ana,
+  });
   const correoPersonal = new Correo({ asunto: "Fiesta", remitente: luis });
   correoPersonal.marcarFavorito();
 
   it("permite crear un filtro básico con nombre y predicado", () => {
-    const filtro = new Filtro("Asuntos con Fiesta", (c) => c.asunto.includes("Fiesta"));
+    const filtro = new Filtro("Asuntos con Fiesta", (c) =>
+      c.asunto.includes("Fiesta"),
+    );
     expect(filtro.nombre).toBe("Asuntos con Fiesta");
     expect(filtro.coincide(correoPersonal)).toBe(true);
     expect(filtro.coincide(correoUcpExamen)).toBe(false);
@@ -36,7 +48,7 @@ describe("Filtro (RF-05)", () => {
   it("crearFiltroPendientes: no leído Y cuerpo con 'Entrega'", () => {
     const correo = new Correo({ cuerpo: "Recordatorio de Entrega" });
     const filtro = crearFiltroPendientes();
-    
+
     expect(filtro.coincide(correo)).toBe(true);
     correo.marcarComoLeido(); // Cambiamos el estado
     expect(filtro.coincide(correo)).toBe(false); // Refleja el cambio inmediato

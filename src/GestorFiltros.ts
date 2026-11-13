@@ -7,7 +7,9 @@ export class GestorFiltros {
 
   registrar(filtro: Filtro): void {
     if (this.filtros.length >= GestorFiltros.LIMITE_FILTROS) {
-      throw new Error(`Límite alcanzado: máximo ${GestorFiltros.LIMITE_FILTROS} filtros`);
+      throw new Error(
+        `Límite alcanzado: máximo ${GestorFiltros.LIMITE_FILTROS} filtros`,
+      );
     }
     this.filtros.push(filtro);
   }

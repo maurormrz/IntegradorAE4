@@ -2,7 +2,6 @@ import { Correo } from "./Correo";
 import { PredicadoCorreo } from "./Predicados";
 
 export class Estadisticas {
-  
   // Obtener la lista de asuntos mediante map
   obtenerAsuntos(correos: Correo[]): string[] {
     return correos.map((correo) => correo.asunto);

@@ -26,9 +26,10 @@ describe("GestorFiltros (RF-05)", () => {
       for (let i = 0; i < 5; i++) {
         gestor.registrar(new Filtro(`Filtro ${i}`, () => true));
       }
-      
-      expect(() => gestor.registrar(new Filtro("Filtro 6", () => true)))
-        .toThrow(/Límite alcanzado/);
+
+      expect(() =>
+        gestor.registrar(new Filtro("Filtro 6", () => true)),
+      ).toThrow(/Límite alcanzado/);
     });
   });
 
@@ -36,8 +37,10 @@ describe("GestorFiltros (RF-05)", () => {
     it("aplica un filtro a una colección de correos", () => {
       const ana = new Contacto("Ana", "ana@ucp.edu.ar");
       const correoUcp = new Correo({ remitente: ana });
-      const otroCorreo = new Correo({ remitente: new Contacto("Luis", "luis@gmail.com") });
-      
+      const otroCorreo = new Correo({
+        remitente: new Contacto("Luis", "luis@gmail.com"),
+      });
+
       const coleccion = [correoUcp, otroCorreo];
       const resultado = gestor.aplicar(filtroUCP, coleccion);
 
@@ -47,20 +50,22 @@ describe("GestorFiltros (RF-05)", () => {
     });
 
     it("no modifica la colección original al aplicar un filtro", () => {
-      const correoUcp = new Correo({ remitente: new Contacto("Ana", "ana@ucp.edu.ar") });
+      const correoUcp = new Correo({
+        remitente: new Contacto("Ana", "ana@ucp.edu.ar"),
+      });
       const coleccion = [correoUcp];
 
       gestor.aplicar(filtroUCP, coleccion);
-      
+
       // La colección original sigue intacta
-      expect(coleccion.length).toBe(1); 
+      expect(coleccion.length).toBe(1);
       expect(coleccion).toContain(correoUcp);
     });
 
     it("permite aplicar el mismo filtro sobre distintas colecciones o bandejas", () => {
       const correo1 = new Correo({ cuerpo: "Entrega 1" });
       const correo2 = new Correo({ cuerpo: "Entrega 2" });
-      
+
       const bandejaA = [correo1];
       const bandejaB = [correo2];
 

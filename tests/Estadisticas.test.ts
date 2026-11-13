@@ -12,11 +12,11 @@ describe("Estadisticas (RF-10)", () => {
   beforeEach(() => {
     estadisticas = new Estadisticas();
     const remitente = new Contacto("Ana", "ana@ucp.edu.ar");
-    
+
     correo1 = new Correo({ asunto: "Examen", remitente });
     correo2 = new Correo({ asunto: "Reunión", remitente });
     correo2.marcarFavorito();
-    
+
     coleccion = [correo1, correo2];
   });
 
@@ -34,22 +34,22 @@ describe("Estadisticas (RF-10)", () => {
   describe("filtrarCorreos (filter)", () => {
     it("devuelve solo los correos que cumplen la condición (ej. favoritos)", () => {
       const favoritos = estadisticas.filtrarCorreos(coleccion, esFavorito());
-      
+
       expect(favoritos.length).toBe(1);
       expect(favoritos[0]).toBe(correo2);
     });
 
     it("devuelve todos si la condición se cumple para todos (ej. no leídos)", () => {
       const noLeidos = estadisticas.filtrarCorreos(coleccion, esNoLeido());
-      
+
       expect(noLeidos.length).toBe(2);
     });
 
     it("no modifica la colección original al filtrar", () => {
       estadisticas.filtrarCorreos(coleccion, esFavorito());
-      
+
       // La colección original sigue teniendo 2 correos
-      expect(coleccion.length).toBe(2); 
+      expect(coleccion.length).toBe(2);
     });
   });
 });

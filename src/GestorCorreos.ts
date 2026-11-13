@@ -49,7 +49,9 @@ export class GestorCorreos {
   restaurar(correo: Correo): void {
     const origen = this.origenEliminados.get(correo.id);
     if (!origen || !this.eliminados.contiene(correo)) {
-      throw new Error("El correo no está en Eliminados o no tiene origen conocido");
+      throw new Error(
+        "El correo no está en Eliminados o no tiene origen conocido",
+      );
     }
     this.eliminados.moverA(origen, correo);
     this.origenEliminados.delete(correo.id);

@@ -1,26 +1,34 @@
 import { Correo } from "../src/Correo";
 import { Contacto } from "../src/Contacto";
-import { 
-  and, or, not, deDominio, asuntoIncluye, cuerpoIncluye, 
-  esNoLeido, esFavorito, remitenteEs, coincideConTexto 
+import {
+  and,
+  or,
+  not,
+  deDominio,
+  asuntoIncluye,
+  cuerpoIncluye,
+  esNoLeido,
+  esFavorito,
+  remitenteEs,
+  coincideConTexto,
 } from "../src/Predicados";
 
 describe("Predicados (RF-05)", () => {
   const ana = new Contacto("Ana Pérez", "ana@ucp.edu.ar");
   const luis = new Contacto("Luis Gómez", "luis@gmail.com");
-  
+
   const correoUcp = new Correo({
     asunto: "Examen de Programación",
     cuerpo: "La entrega es el viernes",
     remitente: ana,
-    destinatarios: [luis]
+    destinatarios: [luis],
   });
 
   const correoPersonal = new Correo({
     asunto: "Reunión familiar",
     cuerpo: "Nos vemos el domingo",
     remitente: luis,
-    destinatarios: [ana]
+    destinatarios: [ana],
   });
   correoPersonal.marcarComoLeido();
   correoPersonal.marcarFavorito();
@@ -37,14 +45,14 @@ describe("Predicados (RF-05)", () => {
 
     it("or: al menos una condición debe cumplirse", () => {
       const filtro = or(deDominio("ucp.edu.ar"), esFavorito());
-      expect(filtro(correoUcp)).toBe(true);  
-      expect(filtro(correoPersonal)).toBe(true); 
+      expect(filtro(correoUcp)).toBe(true);
+      expect(filtro(correoPersonal)).toBe(true);
     });
 
     it("not: invierte el resultado", () => {
       const filtro = not(esNoLeido());
-      expect(filtro(correoUcp)).toBe(false); 
-      expect(filtro(correoPersonal)).toBe(true); 
+      expect(filtro(correoUcp)).toBe(false);
+      expect(filtro(correoPersonal)).toBe(true);
     });
   });
 
