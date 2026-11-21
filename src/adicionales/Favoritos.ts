@@ -6,7 +6,7 @@ import { PredicadoCorreo } from "../Predicados";
 export class Favoritos {
   private readonly estadisticas = new Estadisticas();
 
-  constructor(private readonly gestor: GestorCorreos) {}
+  constructor(private readonly cuenta: GestorCorreos) {}
 
   marcar(correo: Correo): void {
     correo.marcarFavorito();
@@ -18,7 +18,7 @@ export class Favoritos {
 
   // Favoritos de las bandejas activas, sin importar en cuál estén
   listar(): Correo[] {
-    return this.gestor.obtenerFavoritos();
+    return this.cuenta.obtenerFavoritos();
   }
 
   // Filtra solo dentro de los favoritos. La condición puede combinarse con and, or y not

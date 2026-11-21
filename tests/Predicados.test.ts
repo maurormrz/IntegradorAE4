@@ -78,7 +78,9 @@ describe("Predicados (RF-05)", () => {
       expect(coincideConTexto("programación")(correoUcp)).toBe(true); // Asunto
       expect(coincideConTexto("domingo")(correoPersonal)).toBe(true); // Cuerpo
       expect(coincideConTexto("Luis")(correoPersonal)).toBe(true); // Remitente (nombre)
-      expect(coincideConTexto("ucp")(correoUcp)).toBe(true); // Remitente (email) y Destinatario
+      expect(coincideConTexto("ucp")(correoUcp)).toBe(true); // Remitente (email)
+      expect(coincideConTexto("gómez")(correoUcp)).toBe(true); // Destinatario (nombre)
+      expect(coincideConTexto("gmail")(correoUcp)).toBe(true); // Destinatario (email)
     });
 
     it("devuelve false si no hay coincidencias o faltan datos", () => {

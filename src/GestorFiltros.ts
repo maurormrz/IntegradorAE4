@@ -1,11 +1,12 @@
 import { Correo } from "./Correo";
-import { Filtro } from "./Filtro";
+import { CriterioFiltro } from "./Filtro";
 
 export class GestorFiltros {
-  private readonly filtros: Filtro[] = [];
+  // Acepta filtros simples y compuestos: los dos cumplen CriterioFiltro
+  private readonly filtros: CriterioFiltro[] = [];
   private static readonly LIMITE_FILTROS = 5;
 
-  registrar(filtro: Filtro): void {
+  registrar(filtro: CriterioFiltro): void {
     if (this.filtros.length >= GestorFiltros.LIMITE_FILTROS) {
       throw new Error(
         `Límite alcanzado: máximo ${GestorFiltros.LIMITE_FILTROS} filtros`,
@@ -14,12 +15,12 @@ export class GestorFiltros {
     this.filtros.push(filtro);
   }
 
-  listar(): Filtro[] {
+  listar(): CriterioFiltro[] {
     return [...this.filtros];
   }
 
   // Aplica un filtro sobre cualquier colección de correos
-  aplicar(filtro: Filtro, coleccion: Correo[]): Correo[] {
+  aplicar(filtro: CriterioFiltro, coleccion: Correo[]): Correo[] {
     // filter() devuelve un NUEVO arreglo, por lo que no modifica la colección original
     return coleccion.filter((correo) => filtro.coincide(correo));
   }

@@ -1,69 +1,99 @@
-import { Bandeja } from "./Bandeja";
+import { Bandeja, BandejaDeConsulta } from "./Bandeja";
+import { Contacto } from "./Contacto";
 import { Correo, DatosCorreo } from "./Correo";
-import { coincideConTexto } from "./Predicados";
+import { Eliminados } from "./Eliminados";
+import { coincideConTexto, esFavorito } from "./Predicados";
 
+// Lo único que la cuenta necesita para hacer llegar un correo
+export interface Entregador {
+  entregar(correo: Correo): void;
+}
+
+// Cuenta de correo de un usuario: sus cuatro bandejas y sus operaciones
 export class GestorCorreos {
-  readonly entrada = new Bandeja("Entrada");
-  readonly enviados = new Bandeja("Enviados");
-  readonly borradores = new Bandeja("Borradores");
-  readonly eliminados = new Bandeja("Eliminados");
+  private readonly _entrada = new Bandeja("Entrada");
+  private readonly _enviados = new Bandeja("Enviados");
+  private readonly _borradores = new Bandeja("Borradores");
+  private readonly _eliminados = new Eliminados();
 
-  // Guarda a qué bandeja pertenecía un correo antes de ser eliminado
-  private readonly origenEliminados = new Map<number, Bandeja>();
+  // Desde afuera solo se consultan; se modifican con las operaciones de abajo
+  readonly entrada: BandejaDeConsulta = this._entrada;
+  readonly enviados: BandejaDeConsulta = this._enviados;
+  readonly borradores: BandejaDeConsulta = this._borradores;
+  readonly eliminados: BandejaDeConsulta = this._eliminados;
 
-  // Registrar un borrador
+  constructor(
+    readonly propietario: Contacto,
+    private readonly entregador: Entregador,
+  ) {}
+
+  // El remitente de un borrador es siempre el dueño de la cuenta
   crearBorrador(datos: DatosCorreo): Correo {
-    const borrador = new Correo(datos);
-    this.borradores.agregar(borrador);
+    const borrador = new Correo({ ...datos, remitente: this.propietario });
+    this._borradores.agregar(borrador);
     return borrador;
   }
 
-  // Enviar correo (valida, mueve de borradores o agrega a enviados)
-  enviar(correo: Correo): void {
-    correo.validarParaEnvio();
-    if (this.borradores.contiene(correo)) {
-      this.borradores.moverA(this.enviados, correo);
-    } else if (!this.enviados.contiene(correo)) {
-      this.enviados.agregar(correo);
+  // Los cambios quedan guardados en el mismo borrador
+  editarBorrador(borrador: Correo, cambios: DatosCorreo): void {
+    if (!this._borradores.contiene(borrador)) {
+      throw new Error("Solo se pueden editar correos de Borradores");
     }
+    borrador.editar(cambios);
   }
 
-  // Búsqueda en la Bandeja de Entrada
+  // Solo se envían borradores o correos nuevos, a nombre del dueño
+  enviar(correo: Correo): void {
+    const origen = this.bandejaDe(correo);
+    if (origen && origen !== this._borradores) {
+      throw new Error(`No se puede enviar un correo de ${origen.nombre}`);
+    }
+    if (!correo.remitente?.igualA(this.propietario)) {
+      throw new Error("El remitente tiene que ser el dueño de la cuenta");
+    }
+    correo.validarParaEnvio();
+    this.entregador.entregar(correo); // si falla, el correo no se mueve
+    correo.marcarComoEnviado();
+    origen?.remover(correo); // si era un borrador, sale de Borradores
+    this._enviados.agregar(correo);
+  }
+
+  // Los correos que llegan quedan en la Entrada
+  recibir(correo: Correo): void {
+    correo.marcarComoEnviado();
+    this._entrada.agregar(correo);
+  }
+
   buscarEnEntrada(texto: string): Correo[] {
-    return this.entrada.correos.filter(coincideConTexto(texto));
+    return this._entrada.correos.filter(coincideConTexto(texto));
   }
 
-  // Eliminar lógicamente un correo
+  // Eliminación lógica: el correo pasa a Eliminados recordando su origen
   eliminar(correo: Correo): void {
-    const bandejasActivas = [this.entrada, this.enviados, this.borradores];
-    const origen = bandejasActivas.find((b) => b.contiene(correo));
-
+    const origen = this.bandejasActivas().find((b) => b.contiene(correo));
     if (!origen) {
       throw new Error("El correo no se encuentra en ninguna bandeja activa");
     }
-    origen.moverA(this.eliminados, correo);
-    this.origenEliminados.set(correo.id, origen);
+    this._eliminados.recibirDe(origen, correo);
   }
 
-  // Restaurar un correo a su bandeja original
   restaurar(correo: Correo): void {
-    const origen = this.origenEliminados.get(correo.id);
-    if (!origen || !this.eliminados.contiene(correo)) {
-      throw new Error(
-        "El correo no está en Eliminados o no tiene origen conocido",
-      );
-    }
-    this.eliminados.moverA(origen, correo);
-    this.origenEliminados.delete(correo.id);
+    this._eliminados.restaurar(correo);
   }
 
-  // Consultar favoritos (ignorando los eliminados)
+  // Favoritos de las bandejas activas (los eliminados no se muestran)
   obtenerFavoritos(): Correo[] {
-    const coleccionActiva = [
-      ...this.entrada.correos,
-      ...this.enviados.correos,
-      ...this.borradores.correos,
-    ];
-    return coleccionActiva.filter((c) => c.favorito);
+    const activos = this.bandejasActivas().flatMap((b) => b.correos);
+    return activos.filter(esFavorito());
+  }
+
+  private bandejasActivas(): Bandeja[] {
+    return [this._entrada, this._enviados, this._borradores];
+  }
+
+  // Bandeja en la que está el correo, o undefined si no está en ninguna
+  private bandejaDe(correo: Correo): Bandeja | undefined {
+    const todas = [...this.bandejasActivas(), this._eliminados];
+    return todas.find((bandeja) => bandeja.contiene(correo));
   }
 }

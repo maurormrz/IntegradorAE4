@@ -11,4 +11,9 @@ export class Estadisticas {
   filtrarCorreos(correos: Correo[], condicion: PredicadoCorreo): Correo[] {
     return correos.filter((correo) => condicion(correo));
   }
+
+  // Contar los no leídos mediante reduce: suma 1 por cada correo sin leer
+  contarNoLeidos(correos: Correo[]): number {
+    return correos.reduce((total, correo) => total + (correo.leido ? 0 : 1), 0);
+  }
 }

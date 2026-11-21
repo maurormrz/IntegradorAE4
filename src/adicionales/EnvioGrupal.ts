@@ -1,30 +1,28 @@
-import { Bandeja } from "../Bandeja";
+import { Agenda } from "../Agenda";
 import { Contacto } from "../Contacto";
 import { Correo } from "../Correo";
 import { GestorCorreos } from "../GestorCorreos";
 
+// Lista de distribución: un mismo aviso para todos sus miembros
 export class EnvioGrupal {
-  // La entrada de cada destinatario, identificada por su email
-  private readonly entradas = new Map<string, Bandeja>();
+  // La Agenda ya impide miembros repetidos por email
+  private readonly agenda = new Agenda();
 
-  // Devuelve la entrada del contacto y la crea la primera vez que se la pide
-  entradaDe(contacto: Contacto): Bandeja {
-    let entrada = this.entradas.get(contacto.email);
-    if (!entrada) {
-      entrada = new Bandeja("Entrada");
-      this.entradas.set(contacto.email, entrada);
-    }
-    return entrada;
+  constructor(readonly nombre: string) {}
+
+  agregarMiembro(contacto: Contacto): void {
+    this.agenda.agregar(contacto);
   }
 
-  // El emisor guarda el correo en Enviados y cada destinatario lo recibe en su Entrada
-  enviar(emisor: GestorCorreos, correo: Correo): void {
-    emisor.enviar(correo);
-    correo.destinatarios.forEach((destinatario) => {
-      const entrada = this.entradaDe(destinatario);
-      if (!entrada.contiene(correo)) {
-        entrada.agregar(correo);
-      }
-    });
+  miembros(): Contacto[] {
+    return this.agenda.listar();
+  }
+
+  // Arma el borrador en la cuenta del remitente y lo envía a todos los miembros
+  enviar(cuenta: GestorCorreos, asunto: string, cuerpo: string): Correo {
+    const destinatarios = this.miembros();
+    const borrador = cuenta.crearBorrador({ asunto, cuerpo, destinatarios });
+    cuenta.enviar(borrador);
+    return borrador;
   }
 }

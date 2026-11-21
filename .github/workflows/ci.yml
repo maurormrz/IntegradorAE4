@@ -2,9 +2,9 @@ name: CI Gestor de Correos
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-and-test:
@@ -17,10 +17,13 @@ jobs:
       - name: Configurar entorno de Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Instalar dependencias
         run: npm ci
+
+      - name: Compilar TypeScript
+        run: npm run compilar
 
       - name: Ejecutar pruebas automáticas
         run: npm test

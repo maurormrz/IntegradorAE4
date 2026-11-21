@@ -1,98 +1,93 @@
 import { EnvioGrupal } from "../../src/adicionales/EnvioGrupal";
 import { Contacto } from "../../src/Contacto";
-import { Correo, DatosCorreo } from "../../src/Correo";
 import { GestorCorreos } from "../../src/GestorCorreos";
+import { ServidorCorreo } from "../../src/ServidorCorreo";
 
-describe("EnvioGrupal", () => {
+describe("EnvioGrupal (lista de distribución)", () => {
   const ana = new Contacto("Ana Pérez", "ana@ucp.edu.ar");
-  const luis = new Contacto("Luis Gómez", "luis@gmail.com");
-  const cien = Array.from(
+  const cienAlumnos = Array.from(
     { length: 100 },
-    (_, i) => new Contacto(`Destinatario ${i}`, `usuario${i}@ucp.edu.ar`),
+    (_, i) => new Contacto(`Alumno ${i}`, `alumno${i}@ucp.edu.ar`),
   );
-  let gestorAna: GestorCorreos;
-  let envio: EnvioGrupal;
+  let servidor: ServidorCorreo;
+  let cuentaDeAna: GestorCorreos;
+  let alumnos: EnvioGrupal;
 
-  const crearCorreo = (destinatarios: Contacto[], remitente = ana) =>
-    new Correo({ asunto: "Aviso general", remitente, destinatarios });
+  // Cuenta del alumno número i
+  const cuentaDelAlumno = (i: number) => servidor.cuentaDe(cienAlumnos[i]);
 
   beforeEach(() => {
-    gestorAna = new GestorCorreos();
-    envio = new EnvioGrupal();
+    servidor = new ServidorCorreo();
+    cuentaDeAna = servidor.registrar(ana);
+    alumnos = new EnvioGrupal("Alumnos de Paradigmas");
+    cienAlumnos.forEach((alumno) => {
+      servidor.registrar(alumno);
+      alumnos.agregarMiembro(alumno);
+    });
   });
 
-  describe("envío a 100 destinatarios distintos", () => {
-    it("deja el mismo correo en la entrada de cada destinatario", () => {
-      const correo = crearCorreo(cien);
-      envio.enviar(gestorAna, correo);
+  describe("miembros", () => {
+    it("guarda el nombre de la lista y sus 100 miembros", () => {
+      expect(alumnos.nombre).toBe("Alumnos de Paradigmas");
+      expect(alumnos.miembros()).toEqual(cienAlumnos);
+    });
 
-      cien.forEach((destinatario) => {
-        const entrada = envio.entradaDe(destinatario);
+    it("no acepta un miembro repetido", () => {
+      const repetido = new Contacto("Otro nombre", "ALUMNO0@ucp.edu.ar");
+
+      expect(() => alumnos.agregarMiembro(repetido)).toThrow(
+        "Ya existe un contacto con ese email",
+      );
+      expect(alumnos.miembros()).toHaveLength(100);
+    });
+  });
+
+  describe("envío a los 100 alumnos", () => {
+    const enviarAviso = () =>
+      alumnos.enviar(cuentaDeAna, "Aviso general", "Mañana no hay clase");
+
+    it("queda en Enviados de Ana y en la Entrada de cada alumno", () => {
+      const enviado = enviarAviso();
+
+      expect(cuentaDeAna.enviados.correos).toEqual([enviado]);
+      expect(cuentaDeAna.borradores.cantidad).toBe(0);
+      cienAlumnos.forEach((alumno) => {
+        const entrada = servidor.cuentaDe(alumno).entrada;
         expect(entrada.cantidad).toBe(1);
-        expect(entrada.correos[0]).toBe(correo);
+        expect(entrada.correos[0].asunto).toBe("Aviso general");
+        expect(entrada.correos[0].remitente).toBe(ana);
       });
-      expect(gestorAna.enviados.correos).toEqual([correo]);
     });
 
-    it("cada destinatario ve solo los correos que le enviaron", () => {
-      const primeros = crearCorreo(cien.slice(0, 50));
-      const ultimos = crearCorreo(cien.slice(50));
-      envio.enviar(gestorAna, primeros);
-      envio.enviar(gestorAna, ultimos);
+    it("cada alumno tiene su copia: si uno la lee, los demás no cambian", () => {
+      enviarAviso();
+      cuentaDelAlumno(0).entrada.correos[0].marcarComoLeido();
 
-      expect(envio.entradaDe(cien[0]).correos).toEqual([primeros]);
-      expect(envio.entradaDe(cien[99]).correos).toEqual([ultimos]);
+      expect(cuentaDelAlumno(0).entrada.correos[0].leido).toBe(true);
+      expect(cuentaDelAlumno(99).entrada.correos[0].leido).toBe(false);
     });
 
-    it("junta en una entrada los correos de distintos remitentes", () => {
-      const deAna = crearCorreo(cien);
-      const deLuis = crearCorreo(cien, luis);
-      envio.enviar(gestorAna, deAna);
-      envio.enviar(new GestorCorreos(), deLuis);
+    it("un alumno elimina su copia y la restaura sin afectar a los demás", () => {
+      enviarAviso();
+      const cuenta = cuentaDelAlumno(5);
+      const copia = cuenta.entrada.correos[0];
 
-      expect(envio.entradaDe(cien[7]).correos).toEqual([deAna, deLuis]);
-    });
-  });
+      cuenta.eliminar(copia);
+      expect(cuenta.entrada.cantidad).toBe(0);
+      expect(cuenta.eliminados.correos).toEqual([copia]);
+      expect(cuentaDelAlumno(6).entrada.cantidad).toBe(1);
 
-  describe("reglas del envío", () => {
-    it("no duplica el correo si un destinatario está repetido", () => {
-      const mismoEmail = new Contacto("Otro nombre", "USUARIO0@ucp.edu.ar");
-      envio.enviar(gestorAna, crearCorreo([cien[0], mismoEmail, cien[0]]));
-
-      expect(envio.entradaDe(mismoEmail)).toBe(envio.entradaDe(cien[0]));
-      expect(envio.entradaDe(cien[0]).cantidad).toBe(1);
+      cuenta.restaurar(copia);
+      expect(cuenta.entrada.correos).toEqual([copia]);
     });
 
-    it("no duplica nada si se repite la operación de envío", () => {
-      const correo = crearCorreo(cien);
-      envio.enviar(gestorAna, correo);
-      envio.enviar(gestorAna, correo);
-
-      expect(gestorAna.enviados.cantidad).toBe(1);
-      expect(envio.entradaDe(cien[0]).cantidad).toBe(1);
-    });
-
-    it("envía un borrador válido y lo quita de Borradores", () => {
-      const borrador = gestorAna.crearBorrador({
-        asunto: "Aviso general",
-        remitente: ana,
-        destinatarios: cien,
-      });
-      envio.enviar(gestorAna, borrador);
-
-      expect(gestorAna.borradores.contiene(borrador)).toBe(false);
-      expect(envio.entradaDe(cien[99]).contiene(borrador)).toBe(true);
-    });
-
-    it.each<[string, DatosCorreo, string]>([
-      ["sin asunto", { remitente: ana, destinatarios: cien }, "asunto"],
-      ["sin destinatarios", { asunto: "A", remitente: ana }, "destinatario"],
-    ])("rechaza un correo %s y no entrega nada", (_caso, datos, faltante) => {
-      const correo = new Correo(datos);
-
-      expect(() => envio.enviar(gestorAna, correo)).toThrow(faltante);
-      expect(gestorAna.enviados.cantidad).toBe(0);
-      expect(envio.entradaDe(cien[0]).cantidad).toBe(0);
+    it("un aviso sin asunto no le llega a nadie y queda en Borradores", () => {
+      expect(() => alumnos.enviar(cuentaDeAna, " ", "Sin asunto")).toThrow(
+        "asunto",
+      );
+      expect(cuentaDeAna.borradores.cantidad).toBe(1);
+      expect(cuentaDeAna.enviados.cantidad).toBe(0);
+      expect(cuentaDelAlumno(0).entrada.cantidad).toBe(0);
     });
   });
 });

@@ -1,5 +1,7 @@
 import { Agenda } from "../src/Agenda";
+import { Bandeja } from "../src/Bandeja";
 import { Contacto } from "../src/Contacto";
+import { Correo } from "../src/Correo";
 
 describe("Agenda", () => {
   let agenda: Agenda;
@@ -88,6 +90,18 @@ describe("Agenda", () => {
 
       expect(agenda.listar()).toEqual([luis]);
       expect(ana.toString()).toBe("Ana Pérez <ana@ucp.edu.ar>");
+    });
+
+    it("no borra los correos históricos que referencian al contacto", () => {
+      agenda.agregar(luis);
+      const correo = new Correo({ remitente: ana, destinatarios: [luis] });
+      const enviados = new Bandeja("Enviados");
+      enviados.agregar(correo);
+
+      agenda.eliminar("luis@gmail.com");
+
+      expect(enviados.contiene(correo)).toBe(true);
+      expect(correo.destinatarios).toEqual([luis]);
     });
 
     it("rechaza eliminar un contacto que no existe", () => {

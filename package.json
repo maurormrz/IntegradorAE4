@@ -2,10 +2,10 @@
   "name": "integradorae4",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-  "test": "jest",
-  "test:coverage": "jest --coverage"
+    "compilar": "tsc --noEmit",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",

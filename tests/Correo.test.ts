@@ -65,6 +65,20 @@ describe("Correo", () => {
       expect(correo.remitente).toBe(ana);
     });
 
+    it("una vez enviado ya no se puede editar, pero sí marcar", () => {
+      const correo = crearCorreo();
+      correo.marcarComoEnviado();
+
+      expect(() => correo.editar({ asunto: "Otro" })).toThrow(
+        "Un correo enviado no se puede editar",
+      );
+      expect(correo.asunto).toBe("Examen final");
+      correo.marcarComoLeido();
+      correo.marcarFavorito();
+      expect(correo.leido).toBe(true);
+      expect(correo.favorito).toBe(true);
+    });
+
     it("se puede marcar como leído y de nuevo como no leído", () => {
       const correo = crearCorreo();
       correo.marcarComoLeido();
@@ -79,6 +93,22 @@ describe("Correo", () => {
       expect(correo.favorito).toBe(true);
       correo.desmarcarFavorito();
       expect(correo.favorito).toBe(false);
+    });
+  });
+
+  describe("representación en texto", () => {
+    it("muestra de quién a quién va y el asunto", () => {
+      expect(crearCorreo().toString()).toBe(
+        "De: Ana Pérez <ana@ucp.edu.ar> | " +
+          "Para: Luis Gómez <luis@gmail.com>, Marta Ruiz <marta@gmail.com> | " +
+          "Asunto: Examen final",
+      );
+    });
+
+    it("avisa si todavía no tiene remitente ni destinatarios", () => {
+      expect(new Correo({ asunto: "Borrador" }).toString()).toBe(
+        "De: (sin remitente) | Para: (sin destinatarios) | Asunto: Borrador",
+      );
     });
   });
 

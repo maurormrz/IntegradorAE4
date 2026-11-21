@@ -2,6 +2,7 @@ import { Favoritos } from "../../src/adicionales/Favoritos";
 import { Contacto } from "../../src/Contacto";
 import { Correo } from "../../src/Correo";
 import { GestorCorreos } from "../../src/GestorCorreos";
+import { ServidorCorreo } from "../../src/ServidorCorreo";
 import {
   and,
   asuntoIncluye,
@@ -14,22 +15,22 @@ import {
 describe("Favoritos", () => {
   const ana = new Contacto("Ana Pérez", "ana@ucp.edu.ar");
   const luis = new Contacto("Luis Gómez", "luis@gmail.com");
-  let gestor: GestorCorreos;
+  let cuentaDeAna: GestorCorreos;
   let favoritos: Favoritos;
   let examen: Correo;
   let fiesta: Correo;
   let proyecto: Correo;
 
   beforeEach(() => {
-    gestor = new GestorCorreos();
-    favoritos = new Favoritos(gestor);
+    cuentaDeAna = new ServidorCorreo().registrar(ana);
+    favoritos = new Favoritos(cuentaDeAna);
     examen = new Correo({ asunto: "Examen final", remitente: ana });
     fiesta = new Correo({ asunto: "Fiesta", remitente: luis });
-    proyecto = gestor.crearBorrador({ asunto: "Proyecto", remitente: ana });
-    gestor.entrada.agregar(examen);
-    gestor.entrada.agregar(fiesta);
+    proyecto = cuentaDeAna.crearBorrador({ asunto: "Proyecto" });
+    cuentaDeAna.recibir(examen);
+    cuentaDeAna.recibir(fiesta);
     // Es de la UCP, pero nunca se marca como favorito
-    gestor.entrada.agregar(new Correo({ asunto: "Aviso", remitente: ana }));
+    cuentaDeAna.recibir(new Correo({ asunto: "Aviso", remitente: ana }));
   });
 
   describe("marcar y consultar", () => {
@@ -38,8 +39,8 @@ describe("Favoritos", () => {
       favoritos.marcar(proyecto);
 
       expect(favoritos.listar()).toEqual([examen, proyecto]);
-      expect(gestor.entrada.contiene(examen)).toBe(true);
-      expect(gestor.borradores.contiene(proyecto)).toBe(true);
+      expect(cuentaDeAna.entrada.contiene(examen)).toBe(true);
+      expect(cuentaDeAna.borradores.contiene(proyecto)).toBe(true);
     });
 
     it("no duplica un favorito y desmarcar lo quita", () => {
@@ -53,10 +54,12 @@ describe("Favoritos", () => {
 
     it("oculta los eliminados y los muestra al restaurarlos", () => {
       favoritos.marcar(examen);
-      gestor.eliminar(examen);
+      cuentaDeAna.eliminar(examen);
       expect(favoritos.listar()).toEqual([]);
+      expect(cuentaDeAna.eliminados.contiene(examen)).toBe(true);
+      expect(examen.favorito).toBe(true);
 
-      gestor.restaurar(examen);
+      cuentaDeAna.restaurar(examen);
       expect(favoritos.listar()).toEqual([examen]);
     });
   });
@@ -81,9 +84,9 @@ describe("Favoritos", () => {
     });
 
     it("acepta una lambda propia como condición", () => {
-      examen.editar({ destinatarios: [luis, ana] });
+      cuentaDeAna.editarBorrador(proyecto, { destinatarios: [luis, ana] });
       const variosDestinos = (c: Correo) => c.destinatarios.length > 1;
-      expect(favoritos.filtrar(variosDestinos)).toEqual([examen]);
+      expect(favoritos.filtrar(variosDestinos)).toEqual([proyecto]);
     });
 
     it("refleja los cambios sin volver a guardar los correos", () => {

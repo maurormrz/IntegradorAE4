@@ -1,6 +1,14 @@
 import { Correo } from "./Correo";
 
-export class Bandeja {
+// Lo que se puede hacer con una bandeja desde afuera: solo consultarla
+export interface BandejaDeConsulta {
+  readonly nombre: string;
+  readonly correos: Correo[];
+  readonly cantidad: number;
+  contiene(correo: Correo): boolean;
+}
+
+export class Bandeja implements BandejaDeConsulta {
   private readonly _correos: Correo[] = [];
 
   constructor(public readonly nombre: string) {}

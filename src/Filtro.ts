@@ -12,7 +12,13 @@ import {
   remitenteEs,
 } from "./Predicados";
 
-export class Filtro {
+// Lo que tiene cualquier filtro, simple o compuesto
+export interface CriterioFiltro {
+  readonly nombre: string;
+  coincide(correo: Correo): boolean;
+}
+
+export class Filtro implements CriterioFiltro {
   constructor(
     public readonly nombre: string,
     public readonly predicado: PredicadoCorreo,

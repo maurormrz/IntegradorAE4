@@ -52,4 +52,16 @@ describe("Estadisticas (RF-10)", () => {
       expect(coleccion.length).toBe(2);
     });
   });
+
+  describe("contarNoLeidos (reduce)", () => {
+    it("cuenta los correos que todavía no fueron leídos", () => {
+      expect(estadisticas.contarNoLeidos(coleccion)).toBe(2);
+      correo1.marcarComoLeido();
+      expect(estadisticas.contarNoLeidos(coleccion)).toBe(1);
+    });
+
+    it("devuelve 0 si no hay correos", () => {
+      expect(estadisticas.contarNoLeidos([])).toBe(0);
+    });
+  });
 });

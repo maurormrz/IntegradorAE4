@@ -8,8 +8,7 @@ export interface DatosCorreo {
 }
 
 export class Correo {
-  private static contador = 0;
-
+  private static contador = 0; // genera el id único de cada correo
   readonly id: number;
   private _asunto = "";
   private _cuerpo = "";
@@ -17,6 +16,7 @@ export class Correo {
   private _destinatarios: Contacto[] = [];
   private _leido = false;
   private _favorito = false;
+  private _enviado = false; // enviado o recibido: ya no se puede editar
 
   constructor(datos: DatosCorreo = {}) {
     this.id = ++Correo.contador;
@@ -24,6 +24,9 @@ export class Correo {
   }
 
   editar(cambios: DatosCorreo): void {
+    if (this._enviado) {
+      throw new Error("Un correo enviado no se puede editar");
+    }
     this._asunto = cambios.asunto ?? this._asunto;
     this._cuerpo = cambios.cuerpo ?? this._cuerpo;
     this._remitente = cambios.remitente ?? this._remitente;
@@ -69,6 +72,17 @@ export class Correo {
 
   desmarcarFavorito(): void {
     this._favorito = false;
+  }
+
+  marcarComoEnviado(): void {
+    this._enviado = true;
+  }
+
+  // Muestra de quién a quién va el correo
+  toString(): string {
+    const de = this._remitente?.toString() ?? "(sin remitente)";
+    const para = this._destinatarios.join(", ") || "(sin destinatarios)";
+    return `De: ${de} | Para: ${para} | Asunto: ${this._asunto}`;
   }
 
   // Los borradores pueden estar incompletos, pero para enviarlos esto debe cumplirse
