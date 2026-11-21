@@ -4,9 +4,8 @@ import { Correo, DatosCorreo } from "./Correo";
 import { Eliminados } from "./Eliminados";
 import { coincideConTexto, esFavorito } from "./Predicados";
 
-// Lo único que la cuenta necesita para hacer llegar un correo
 export interface Entregador {
-  entregar(correo: Correo): void;
+  entregar(correo: Correo): void; // lo único que la cuenta necesita
 }
 
 // Cuenta de correo de un usuario: sus cuatro bandejas y sus operaciones
@@ -34,12 +33,12 @@ export class GestorCorreos {
     return borrador;
   }
 
-  // Los cambios quedan guardados en el mismo borrador
+  // Los cambios quedan guardados en el mismo borrador (el remitente no cambia)
   editarBorrador(borrador: Correo, cambios: DatosCorreo): void {
     if (!this._borradores.contiene(borrador)) {
       throw new Error("Solo se pueden editar correos de Borradores");
     }
-    borrador.editar(cambios);
+    borrador.editar({ ...cambios, remitente: this.propietario });
   }
 
   // Solo se envían borradores o correos nuevos, a nombre del dueño
@@ -58,8 +57,11 @@ export class GestorCorreos {
     this._enviados.agregar(correo);
   }
 
-  // Los correos que llegan quedan en la Entrada
+  // Los correos que llegan quedan en la Entrada, sin duplicarse en la cuenta
   recibir(correo: Correo): void {
+    if (this.bandejaDe(correo)) {
+      throw new Error("El correo ya está en la cuenta");
+    }
     correo.marcarComoEnviado();
     this._entrada.agregar(correo);
   }
@@ -91,7 +93,6 @@ export class GestorCorreos {
     return [this._entrada, this._enviados, this._borradores];
   }
 
-  // Bandeja en la que está el correo, o undefined si no está en ninguna
   private bandejaDe(correo: Correo): Bandeja | undefined {
     const todas = [...this.bandejasActivas(), this._eliminados];
     return todas.find((bandeja) => bandeja.contiene(correo));

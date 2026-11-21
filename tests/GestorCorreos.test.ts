@@ -43,6 +43,14 @@ describe("GestorCorreos (cuenta de un usuario)", () => {
       expect(guardado.destinatarios).toEqual([luis]);
     });
 
+    it("el remitente sigue siendo el dueño aunque se intente cambiar", () => {
+      const borrador = cuentaDeAna.crearBorrador({ remitente: luis });
+      expect(borrador.remitente).toBe(ana);
+
+      cuentaDeAna.editarBorrador(borrador, { remitente: luis });
+      expect(borrador.remitente).toBe(ana);
+    });
+
     it("no permite editar un correo que no está en Borradores", () => {
       const borrador = crearBorradorValido();
       cuentaDeAna.enviar(borrador);
@@ -152,6 +160,19 @@ describe("GestorCorreos (cuenta de un usuario)", () => {
       cuentaDeAna.recibir(correo);
 
       expect(cuentaDeAna.entrada.correos).toEqual([correo]);
+    });
+
+    it("no recibe un correo que ya está en otra bandeja de la cuenta", () => {
+      const borrador = crearBorradorValido();
+      expect(() => cuentaDeAna.recibir(borrador)).toThrow(
+        "El correo ya está en la cuenta",
+      );
+
+      cuentaDeAna.enviar(borrador); // el intento fallido no lo bloqueó
+      expect(() => cuentaDeAna.recibir(borrador)).toThrow(
+        "El correo ya está en la cuenta",
+      );
+      expect(cuentaDeAna.entrada.cantidad).toBe(0);
     });
 
     it("un correo recibido no se puede modificar", () => {

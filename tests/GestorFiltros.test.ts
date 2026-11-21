@@ -35,6 +35,15 @@ describe("GestorFiltros (RF-05)", () => {
       expect(gestor.listar()).toEqual([filtroUCP, compuesto]);
     });
 
+    it("no registra dos filtros con el mismo nombre", () => {
+      gestor.registrar(filtroUCP);
+
+      expect(() => gestor.registrar(crearFiltroUCP())).toThrow(
+        "Ya existe un filtro con ese nombre",
+      );
+      expect(gestor.listar()).toEqual([filtroUCP]);
+    });
+
     it("impide registrar un sexto filtro", () => {
       for (let i = 0; i < 5; i++) {
         gestor.registrar(new Filtro(`Filtro ${i}`, () => true));

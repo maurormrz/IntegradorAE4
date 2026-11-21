@@ -12,6 +12,10 @@ export class GestorFiltros {
         `Límite alcanzado: máximo ${GestorFiltros.LIMITE_FILTROS} filtros`,
       );
     }
+    // El nombre identifica al filtro: no puede haber dos iguales
+    if (this.filtros.some((f) => f.nombre === filtro.nombre)) {
+      throw new Error("Ya existe un filtro con ese nombre");
+    }
     this.filtros.push(filtro);
   }
 

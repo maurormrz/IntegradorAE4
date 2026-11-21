@@ -1,3 +1,4 @@
+import { Bandeja } from "../src/Bandeja";
 import { Estadisticas } from "../src/Estadisticas";
 import { Correo } from "../src/Correo";
 import { esFavorito, esNoLeido } from "../src/Predicados";
@@ -28,6 +29,16 @@ describe("Estadisticas (RF-10)", () => {
 
     it("devuelve un arreglo vacío si no hay correos", () => {
       expect(estadisticas.obtenerAsuntos([])).toEqual([]);
+    });
+
+    it("obtiene la lista de asuntos de una bandeja", () => {
+      const entrada = new Bandeja("Entrada");
+      coleccion.forEach((correo) => entrada.agregar(correo));
+
+      expect(estadisticas.obtenerAsuntos(entrada.correos)).toEqual([
+        "Examen",
+        "Reunión",
+      ]);
     });
   });
 

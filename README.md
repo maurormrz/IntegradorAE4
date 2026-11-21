@@ -77,7 +77,9 @@ classDiagram
     +favorito: boolean
     +editar(cambios)
     +marcarComoLeido()
+    +marcarComoNoLeido()
     +marcarFavorito()
+    +desmarcarFavorito()
     +marcarComoEnviado()
     +validarParaEnvio()
     +toString() string
@@ -176,6 +178,7 @@ classDiagram
   EnvioGrupal *-- Agenda
   EnvioGrupal ..> GestorCorreos
   Favoritos --> GestorCorreos
+  Favoritos *-- Estadisticas
 ```
 
 `Predicados.ts` no es una clase: es un módulo de funciones. Define el tipo `PredicadoCorreo = (correo) => boolean`, los operadores de orden superior `and`, `or` y `not`, los predicados simples (`deDominio`, `asuntoIncluye`, `cuerpoIncluye`, `esNoLeido`, `esFavorito`, `remitenteEs`) y `coincideConTexto` para la búsqueda.
@@ -184,12 +187,13 @@ classDiagram
 
 ## Decisiones de diseño
 
-- **Una cuenta por usuario.** `GestorCorreos` es la cuenta de una persona, con sus cuatro bandejas. `ServidorCorreo` registra las cuentas (una por email) y entrega los correos.
+- **Una cuenta por usuario.** `GestorCorreos` es la cuenta de una persona, con sus cuatro bandejas. `ServidorCorreo` registra las cuentas (una por email) y entrega los correos. El remitente de un borrador es siempre el dueño de la cuenta, también al editarlo.
 - **Cada destinatario recibe su propia copia.** La copia tiene el mismo contenido, pero otro `id` y su propio estado de leído y favorito. Así un correo está siempre en una sola bandeja: si Luis elimina su copia o Sofía lee la suya, las demás no cambian.
 - **Bandejas de solo consulta.** Desde afuera, las bandejas de una cuenta se ven como `BandejaDeConsulta` (sin `agregar` ni `remover`). Los correos solo se mueven con las operaciones de la cuenta, que validan las reglas.
 - **Un correo enviado o recibido ya no se edita.** Al enviarlo o recibirlo, el correo queda marcado como enviado y `editar` lanza un error. Se puede seguir marcando como leído o favorito. Así nadie cambia un mensaje después de enviado, ni siquiera llamando a `Correo.editar` directamente.
 - **Eliminados recuerda el origen.** `Eliminados` guarda de qué bandeja salió cada correo y lo restaura ahí. Un correo eliminado conserva su marca de favorito, pero no aparece en `obtenerFavoritos()` hasta que se restaura.
 - **Los filtros no guardan correos.** Evalúan la colección en el momento en que se aplican. Por eso un cambio (por ejemplo, marcar como leído) se ve enseguida en el resultado.
+- **El nombre identifica al filtro.** `GestorFiltros` registra hasta cinco filtros y no acepta dos con el mismo nombre.
 - **El envío no deja estados a medias.** Primero se valida todo (bandeja de origen, remitente, datos y que existan las cuentas de los destinatarios), después se entrega y recién entonces el correo pasa a Enviados.
 
 ### Movimientos permitidos entre bandejas
@@ -199,7 +203,7 @@ classDiagram
 | `crearBorrador`  | —                              | Borradores                                                | —                                                                          |
 | `editarBorrador` | Borradores                     | Borradores                                                | error: solo se editan borradores; un correo enviado o recibido no se edita |
 | `enviar`         | Borradores o correo nuevo      | Enviados (y una copia en la Entrada de cada destinatario) | error si está en Entrada, Enviados o Eliminados                            |
-| `recibir`        | servidor                       | Entrada                                                   | —                                                                          |
+| `recibir`        | servidor                       | Entrada                                                   | error si el correo ya está en alguna bandeja de la cuenta                  |
 | `eliminar`       | Entrada, Enviados o Borradores | Eliminados                                                | error si ya está eliminado o no está en la cuenta                          |
 | `restaurar`      | Eliminados                     | la bandeja de origen                                      | error si no está en Eliminados                                             |
 
