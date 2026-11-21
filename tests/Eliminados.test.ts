@@ -3,7 +3,7 @@ import { Contacto } from "../src/Contacto";
 import { Correo } from "../src/Correo";
 import { Eliminados } from "../src/Eliminados";
 
-// Guía: Eliminados es una Bandeja que además recuerda de dónde vino cada correo.
+// Eliminados es una Bandeja que además recuerda de dónde vino cada correo.
 // Se prueba sola, con bandejas sueltas, sin cuentas ni servidor.
 describe("Eliminados (RF-06)", () => {
   const ana = new Contacto("Ana Pérez", "ana@ucp.edu.ar");

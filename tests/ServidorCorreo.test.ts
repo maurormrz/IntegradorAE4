@@ -3,8 +3,8 @@ import { Correo } from "../src/Correo";
 import { GestorCorreos } from "../src/GestorCorreos";
 import { ServidorCorreo } from "../src/ServidorCorreo";
 
-// Guía: el servidor registra una cuenta por usuario y entrega los correos.
-// Corrección del profesor: bandejas separadas por persona; cada una recibe su copia.
+// El servidor registra una cuenta por usuario y entrega los correos.
+// Bandejas separadas por persona; cada una recibe su copia.
 describe("ServidorCorreo (RF-02, RF-06)", () => {
   // Contactos del ejemplo; "desconocido" no tiene cuenta en el servidor
   const ana = new Contacto("Ana Pérez", "ana@ucp.edu.ar");

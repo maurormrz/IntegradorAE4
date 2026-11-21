@@ -6,7 +6,7 @@ import { FiltroCompuesto } from "../src/FiltroCompuesto";
 import { GestorFiltros } from "../src/GestorFiltros";
 import { asuntoIncluye, esFavorito, esNoLeido, not } from "../src/Predicados";
 
-// Guía: FiltroCompuesto combina filtros (simples o compuestos) con AND, OR o NOT.
+// FiltroCompuesto combina filtros (simples o compuestos) con AND, OR o NOT.
 // Cumple CriterioFiltro, así que se usa igual que un Filtro (polimorfismo).
 describe("FiltroCompuesto (RF-05)", () => {
   const ana = new Contacto("Ana Pérez", "ana@ucp.edu.ar");

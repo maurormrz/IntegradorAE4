@@ -15,7 +15,6 @@ import { ServidorCorreo } from "../src/ServidorCorreo";
 
 // Historia completa: Enviar -> Eliminar -> Filtros compuestos.
 // Los pasos se ejecutan en orden y comparten el mismo servidor y las mismas cuentas.
-// Guía para el coloquio: leerlo de arriba a abajo, como una historia.
 describe("Escenario: enviar, eliminar y filtrar", () => {
   const ana = new Contacto("Ana Pérez", "ana@ucp.edu.ar");
   const luis = new Contacto("Luis Gómez", "luis@gmail.com");
